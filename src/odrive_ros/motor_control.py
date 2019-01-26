@@ -17,8 +17,8 @@ odrv_state = AXIS_STATE_IDLE;
 
 #tranformation values to map current and velocity to motor counts
 gear_ratio = 28 #the gear reduction from motor to wheel
-vel_max = 1024 #in encoder counts per sec, divide by 1024 to get max RPS (rotation per sec)
-cur_max = 10 #message for current control will be a value between -1,1 
+vel_max = rospy.get_param("max_odrive_velocity") #in encoder counts per sec, divide by 1024 to get max RPS (rotation per sec)
+cur_max = rospy.get_param("max_odrive_current") #message for current control will be a value between -1,1 
 
 
 def callback(message):
