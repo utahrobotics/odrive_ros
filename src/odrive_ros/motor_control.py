@@ -6,7 +6,7 @@ from odrive.enums import *
 import rospy
 from std_msgs.py import String
 
-topic = ''
+topic = ''  
 front_odrv = None
 back_odrv = None
 
@@ -17,7 +17,7 @@ odrv_state = AXIS_STATE_IDLE;
 
 #tranformation values to map current and velocity to motor counts
 gear_ratio = 28 #the gear reduction from motor to wheel
-vel_shift = 1
+vel_max = 1024 #in encoder counts per sec, divide by 1024 to get max RPS (rotation per sec)
 cur_max = 10 #message for current control will be a value between -1,1 
 
 
@@ -27,10 +27,10 @@ def callback(message):
     # axis1 (motor 1) is the right wheel motor
     if odrv_state == AXIS_STATE_CLOSED_LOOP_CONTROL:
         if control_type == CTRL_MODE_VELOCITY_CONTROL:
-            front_odrv.axis0.controller.vel_setpoint(message.front_left * vel_shift / gear_ratio)
-            front_odrv.axis1.controller.vel_setpoint(message.front_right * vel_shift / gear_ratio)
-            back_odrv.axis0.controller.vel_setpoint(message.rear_left * vel_shift / gear_ratio)
-            back_odrv.axis1.controller.vel_setpoint(message.rear_right * vel_shift / gear_ratio)
+            front_odrv.axis0.controller.vel_setpoint(message.front_left * vel_max * gear_ratio)
+            front_odrv.axis1.controller.vel_setpoint(message.front_right * vel_max * gear_ratio)
+            back_odrv.axis0.controller.vel_setpoint(message.rear_left * vel_max * gear_ratio)
+            back_odrv.axis1.controller.vel_setpoint(message.rear_right * vel_max * gear_ratio)
         elif control_type == CTRL_MODE_CURRENT_CONTROL:
             front_odrv.axis0.controller.current_setpoint(message.front_left * cur_max)
             front_odrv.axis1.controller.current_setpoint(message.front_right * cur_max)
@@ -123,8 +123,8 @@ def odrive_setup():
         back_odrv.axis0.requested_state = AXIS_STATE_ENCODER_OFFSET_CALIBRATION
 
     #set all motors into default state and control mode(active)
-    set_state(odrv_state)
-    set_control_type(control_type)
+    set_state(AXIS_STATE_IDLE)
+    set_control_type(CTRL_MODE_VELOCITY_CONTROL)
     return
 
 if __name__ == '__main__':
