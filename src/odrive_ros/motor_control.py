@@ -16,6 +16,7 @@ control_type = CTRL_MODE_VELOCITY_CONTROL;
 odrv_state = AXIS_STATE_IDLE;
 
 #tranformation values to map current and velocity to motor counts
+gear_ratio = 28 #the gear reduction from motor to wheel
 vel_shift = 1
 cur_max = 10 #message for current control will be a value between -1,1 
 
@@ -26,10 +27,10 @@ def callback(message):
     # axis1 (motor 1) is the right wheel motor
     if odrv_state == AXIS_STATE_CLOSED_LOOP_CONTROL:
         if control_type == CTRL_MODE_VELOCITY_CONTROL:
-            front_odrv.axis0.controller.vel_setpoint(message.front_left * vel_shift)
-            front_odrv.axis1.controller.vel_setpoint(message.front_right * vel_shift)
-            back_odrv.axis0.controller.vel_setpoint(message.rear_left * vel_shift)
-            back_odrv.axis1.controller.vel_setpoint(message.rear_right * vel_shift)
+            front_odrv.axis0.controller.vel_setpoint(message.front_left * vel_shift / gear_ratio)
+            front_odrv.axis1.controller.vel_setpoint(message.front_right * vel_shift / gear_ratio)
+            back_odrv.axis0.controller.vel_setpoint(message.rear_left * vel_shift / gear_ratio)
+            back_odrv.axis1.controller.vel_setpoint(message.rear_right * vel_shift / gear_ratio)
         elif control_type == CTRL_MODE_CURRENT_CONTROL:
             front_odrv.axis0.controller.current_setpoint(message.front_left * cur_max)
             front_odrv.axis1.controller.current_setpoint(message.front_right * cur_max)
@@ -58,12 +59,37 @@ def listener_init():
     rospy.Subscriber(StateMachine, message_type, control_type_callback);
 
     #setting up the odrives
+    odrive_setup()
+
+    rospy.spin()
+    return
+
+
+
+def set_control_type(control_type):
+    #set all odrive motors to given control state
+    front_odrv.axis0.controller.config.control_mode = control_type
+    front_odrv.axis1.controller.config.control_mode = control_type
+    back_odrv.axis0.controller.config.control_mode = control_type
+    back_odrv.axis1.controller.config.control_mode = control_type
+    return
+
+def set_state(requested_state):
+    #set all odrvie motors to a given state
+    front_odrv.axis0.requested_state = requested_state
+    front_odrv.axis1.requested_state = requested_state
+    back_odrv.axis0.requested_state = requested_state
+    back_odrv.axis1.requested_state = requested_state
+    return 
+
+def odrive_setup():
     # odrive stack sperate with one odrive for front wheels and one for  back wheels
     # axis0 (motor 0) is designated for the left wheel motor
     # axis1 (motor 1) is the right wheel motor
     
     #serial ports conecting odrives to the robot, to be determined
     front_odrv_port = 'serial' 
+
     back_odrv_port = 'serial' 
     
     #finding odrives
@@ -99,27 +125,7 @@ def listener_init():
     #set all motors into default state and control mode(active)
     set_state(odrv_state)
     set_control_type(control_type)
-
-    rospy.spin()
     return
-
-
-
-def set_control_type(control_type):
-    #set all odrive motors to given control state
-    front_odrv.axis0.controller.config.control_mode = control_type
-    front_odrv.axis1.controller.config.control_mode = control_type
-    back_odrv.axis0.controller.config.control_mode = control_type
-    back_odrv.axis1.controller.config.control_mode = control_type
-    return
-
-def set_state(requested_state):
-    #set all odrvie motors to a given state
-    front_odrv.axis0.requested_state = requested_state
-    front_odrv.axis1.requested_state = requested_state
-    back_odrv.axis0.requested_state = requested_state
-    back_odrv.axis1.requested_state = requested_state
-    return 
 
 if __name__ == '__main__':
     listener_init()
