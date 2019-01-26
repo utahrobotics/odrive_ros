@@ -15,9 +15,9 @@ back_odrv = None
 control_type = CTRL_MODE_VELOCITY_CONTROL;
 odrv_state = AXIS_STATE_IDLE;
 
-#tranformation values to map pos and vel to motor counts
+#tranformation values to map current and velocity to motor counts
 vel_shift = 1
-pos_shift = 1
+cur_max = 10 #message for current control will be a value between -1,1 
 
 
 def callback(message):
@@ -30,11 +30,11 @@ def callback(message):
             front_odrv.axis1.controller.vel_setpoint(message.front_right * vel_shift)
             back_odrv.axis0.controller.vel_setpoint(message.rear_left * vel_shift)
             back_odrv.axis1.controller.vel_setpoint(message.rear_right * vel_shift)
-        elif control_type == CTRL_MODE_POSITION_CONTROL:
-            front_odrv.axis0.controller.pos_setpoint(message.front_left * pos_shift)
-            front_odrv.axis1.controller.pos_setpoint(message.front_right * pos_shift)
-            back_odrv.axis0.controller.pos_setpoint(message.rear_left * pos_shift)
-            back_odrv.axis1.controller.pos_setpoint(message.rear_right * pos_shift)
+        elif control_type == CTRL_MODE_CURRENT_CONTROL:
+            front_odrv.axis0.controller.current_setpoint(message.front_left * cur_max)
+            front_odrv.axis1.controller.current_setpoint(message.front_right * cur_max)
+            back_odrv.axis0.controller.current_setpoint(message.rear_left * cur_max)
+            back_odrv.axis1.controller.current_setpoint(message.rear_right * cur_max)
 
 
     return
