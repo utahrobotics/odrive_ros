@@ -12,6 +12,10 @@ topic = ''
 front_odrv = None
 back_odrv = None
 
+#serial ports conecting odrives to the robot, to be determined
+front_odrv_port = 'serial:/dev/ttyOdrvFront' 
+back_odrv_port = 'serial:/dev/ttyOdrvBack' 
+
 #default control is velocity and default state is idle
 #message to change state to closed_loop should be sent
 control_type = CTRL_MODE_VELOCITY_CONTROL;
